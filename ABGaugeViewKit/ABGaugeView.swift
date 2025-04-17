@@ -1,11 +1,3 @@
-//
-//  ABGaugeView.swift
-//  ABGaugeViewKit
-//
-//  Created by Ajay Bhanushali on 02/03/18.
-//  Copyright © 2018 Aimpact. All rights reserved.
-//
-
 import Foundation
 import UIKit
 
@@ -13,12 +5,12 @@ import UIKit
 public class ABGaugeView: UIView {
     
     // MARK:- @IBInspectable
-    @IBInspectable public var colorCodes: String = "929918,C8CC86,66581A,3A4A73,185D99"
-    @IBInspectable public var areas: String = "20,20,20,20,20"
-    @IBInspectable public var arcAngle: CGFloat = 2.4
-    
-    @IBInspectable public var needleColor: UIColor = UIColor(red: 18/255.0, green: 112/255.0, blue: 178/255.0, alpha: 1.0)
-    @IBInspectable public var needleValue: CGFloat = 0 {
+    @IBInspectable public var colorCodes: String = "B13138,EDEDED"
+    @IBInspectable public var areas: String = "60,40"
+    @IBInspectable public var arcAngle: CGFloat = 1.8
+    //UIColor(red: 148/255.0, green: 17/255.0, blue: 0/255.0, alpha: 1.0)
+    @IBInspectable public var needleColor: UIColor =  UIColor.black
+    @IBInspectable public var needleValue: Int = 90 {
         didSet {
             setNeedsDisplay()
         }
@@ -36,7 +28,7 @@ public class ABGaugeView: UIView {
         }
     }
     
-    @IBInspectable public var blinkAnimate: Bool = false
+    @IBInspectable public var blinkAnimate: Bool = true
     
     @IBInspectable public var circleColor: UIColor = UIColor.black
     @IBInspectable public var shadowColor: UIColor = UIColor.lightGray.withAlphaComponent(0.3)
@@ -73,13 +65,13 @@ public class ABGaugeView: UIView {
     }
     
     func drawSmartArc() {
-        let angles = getAllAngles()
+        var angles = getAllAngles()
         let arcColors = colorCodes.components(separatedBy: ",")
         let center = CGPoint(x: bounds.width / 2, y: bounds.height / 2)
         
         var arcs = [ArcModel(startAngle: angles[0],
                              endAngle: angles.last!,
-                             strokeColor: shadowColor,
+                             strokeColor: .white,
                              arcCap: CGLineCap.round,
                              center:CGPoint(x: bounds.width / 2, y: (bounds.height / 2)+5))]
         
@@ -90,7 +82,8 @@ public class ABGaugeView: UIView {
                                center: center)
             arcs.append(arc)
         }
-        arcs.rearrange(from: arcs.count-1, to: 2)
+        print("array",arcs,arcs.count)
+        arcs.rearrange(from: arcs.count-1, to: 1)
         arcs[1].arcCap = self.capStyle
         arcs[2].arcCap = self.capStyle
         for i in 0..<arcs.count {
@@ -109,7 +102,7 @@ public class ABGaugeView: UIView {
         animation.duration = 0.1
         animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.default)
         animation.autoreverses = true
-        animation.repeatCount = 3
+        animation.repeatCount = 0
         self.layer.add(animation, forKey: "opacity")
     }
     
@@ -122,12 +115,12 @@ public class ABGaugeView: UIView {
     func getAllAngles() -> [CGFloat] {
         var angles = [CGFloat]()
         firstAngle = radian(for: 0) + .pi/2
-        var lastAngle = radian(for: 100) + .pi/2
+        var lastAngle = radian(for: 50) + .pi/2
         
-        let degrees:CGFloat = 3.6 * 100
-        let radians = degrees * .pi/(1.8*100)
+        let degrees:CGFloat = 3.6 * 50
+        let radians = degrees * .pi/(1.8*50)
         
-        let thisRadians = (arcAngle * 100) * .pi/(1.8*100)
+        let thisRadians = (arcAngle * 50) * .pi/(1.8*50)
         let theD = (radians - thisRadians)/2
         firstAngle += theD
         lastAngle += theD
@@ -146,9 +139,15 @@ public class ABGaugeView: UIView {
     
     func createArcWith(startAngle: CGFloat, endAngle: CGFloat, arcCap: CGLineCap, strokeColor: UIColor, center:CGPoint) {
         // 1
+        var lineWidth: CGFloat = 0
         let center = center
-        let radius: CGFloat = max(bounds.width, bounds.height)/2 - self.frame.width/20
-        let lineWidth: CGFloat = self.frame.width/10
+        let radius: CGFloat = max(bounds.width, bounds.height)/2 - self.frame.width/10
+        if UIDevice().userInterfaceIdiom == .pad{
+             lineWidth = 45
+        }else{
+             lineWidth = 30
+        }
+        
         // 2
         let path = UIBezierPath(arcCenter: center,
                                 radius: radius,
@@ -157,7 +156,7 @@ public class ABGaugeView: UIView {
                                 clockwise: true)
         // 3
         path.lineWidth = lineWidth
-        path.lineCapStyle = arcCap
+       // path.lineCapStyle = arcCap
         strokeColor.setStroke()
         path.stroke()
     }
@@ -179,41 +178,38 @@ public class ABGaugeView: UIView {
         
         // 2
         triangleLayer.frame = bounds
-        shadowLayer.frame = CGRect(x: bounds.origin.x, y: bounds.origin.y + 5, width: bounds.width, height: bounds.height)
+       // shadowLayer.frame = CGRect(x: bounds.origin.x, y: bounds.origin.y + 5, width: bounds.width, height: bounds.height)
         
         // 3
         let needlePath = UIBezierPath()
-        needlePath.move(to: CGPoint(x: self.bounds.width/2, y: self.bounds.width * 0.95))
-        needlePath.addLine(to: CGPoint(x: self.bounds.width * 0.47, y: self.bounds.width * 0.42))
-        needlePath.addLine(to: CGPoint(x: self.bounds.width * 0.53, y: self.bounds.width * 0.42))
-        
+        needlePath.move(to: CGPoint(x: self.bounds.width/2, y: self.bounds.width * 0.81))
+        needlePath.addLine(to: CGPoint(x: self.bounds.width * 0.47, y: self.bounds.width * 0.5))
+        needlePath.addLine(to: CGPoint(x: self.bounds.width * 0.53, y: self.bounds.width * 0.5))
+
         needlePath.close()
         
         // 4
         triangleLayer.path = needlePath.cgPath
-        shadowLayer.path = needlePath.cgPath
+       // shadowLayer.path = needlePath.cgPath
         
         // 5
         triangleLayer.fillColor = needleColor.cgColor
         triangleLayer.strokeColor = needleColor.cgColor
-        shadowLayer.fillColor = shadowColor.cgColor
+        //shadowLayer.fillColor = shadowColor.cgColor
         // 6
-        layer.addSublayer(shadowLayer)
+       // layer.addSublayer(shadowLayer)
         layer.addSublayer(triangleLayer)
         
         var firstAngle = radian(for: 0)
-        
+
         let degrees:CGFloat = 3.6 * 100 // Entire Arc is of 240 degrees
         let radians = degrees * .pi/(1.8*100)
-        
+
         let thisRadians = (arcAngle * 100) * .pi/(1.8*100)
         let theD = (radians - thisRadians)/2
         firstAngle += theD
-        let needleValue = radian(for: self.needleValue) + firstAngle
-        animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: 0, toValue: needleValue*1.05, duration: 0.5) {
-            self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*1.05, toValue: needleValue*0.95, duration: 0.4, callBack: {
-                self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*0.95, toValue: needleValue, duration: 0.6, callBack: {})
-            })
+        let needleValue = radian(for: CGFloat(self.needleValue)) + firstAngle
+        animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: 1.4, toValue: needleValue, duration: 1) {
         }
     }
     
